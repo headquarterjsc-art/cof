@@ -50,7 +50,6 @@
 .signature-date-input::-webkit-datetime-edit-day-field,
 .signature-date-input::-webkit-datetime-edit-year-field { color: transparent; }
 
-/* Hide picker indicator for signature date in print, same as table date */
 @media print {
     .signature-date-input::-webkit-calendar-picker-indicator { display: none; }
     .signature-date-input { cursor: default; pointer-events: none; }
@@ -127,7 +126,13 @@
         }
         @page { size: A4; margin: 10mm 12mm; }
         .container { page-break-inside: avoid; }
-    </style>
+    
+@media print {
+    /* Hide image upload section if no images */
+    .image-upload-section:not(:has(.has-image)) { display: none !important; }
+}
+
+</style>
 </head>
 <body>
     <div class="container">
@@ -146,7 +151,7 @@
         <div class="project-section">
             <div class="project-row">
                 <label>โครงการ:</label>
-                <input type="text" id="project">
+                <input type="text" id="project" value="สำนักงานกลาง">
             </div>
         </div>
         
@@ -161,19 +166,41 @@
                     </tr>
                 </thead>
                 <tbody id="expenseBody">
-                    <tr>
-                        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
-                        <td><input type="text" class="description-input"></td>
-                        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
-                        <td><input type="text" class="note-input"></td>
-                    </tr>
-                    <tr>
-                        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
-                        <td><input type="text" class="description-input"></td>
-                        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
-                        <td><input type="text" class="note-input"></td>
-                    </tr>
-                </tbody>
+    <tr>
+        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
+        <td><input type="text" class="description-input"></td>
+        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+        <td><input type="text" class="note-input"></td>
+    </tr>
+
+    <tr>
+        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
+        <td><input type="text" class="description-input"></td>
+        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+        <td><input type="text" class="note-input"></td>
+    </tr>
+
+    <tr>
+        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
+        <td><input type="text" class="description-input"></td>
+        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+        <td><input type="text" class="note-input"></td>
+    </tr>
+
+    <tr>
+        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
+        <td><input type="text" class="description-input"></td>
+        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+        <td><input type="text" class="note-input"></td>
+    </tr>
+
+    <tr>
+        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
+        <td><input type="text" class="description-input"></td>
+        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+        <td><input type="text" class="note-input"></td>
+    </tr>
+</tbody>
                 <tfoot>
                     <tr class="total-row">
                         <td colspan="2" style="text-align: center; font-weight: 600;">รวมทั้งสิ้น</td>
@@ -238,10 +265,10 @@
                     <div class="signature-info">
                         <p>ชื่อผู้เบิก: <select id="requesterSelect" style="width: 200px; border: none; border-bottom: 1px solid #333; padding: 2px 5px; margin: 0 5px; font-family: inherit; appearance: none; background: transparent; cursor: pointer;" onchange="updateRequesterPosition()" onfocus="this.size=3;" onblur="this.size=1;" onmouseover="this.size=3;" onmouseout="if(document.activeElement !== this) this.size=1;">
                             <option value="">เลือกชื่อผู้เบิก</option>
-                            <option value="นาย อธิวัฒน์ โตพุก">นาย อธิวัฒน์ โตพุก</option>
+                            <option value="นาย อธิวัฒน์ โตพุก" selected>นาย อธิวัฒน์ โตพุก</option>
                             <option value="น.ส. ณัฎฐพัชร ไตรยุทธรงค์">น.ส. ณัฎฐพัชร ไตรยุทธรงค์</option>
                         </select></p>
-                        <p>ตำแหน่ง: <input type="text" id="requesterPosition" style="width: 150px;" readonly></p>
+                        <p>ตำแหน่ง: <input type="text" id="requesterPosition" style="width: 150px;" readonly value="ผู้ช่วยกรรมการ"></p>
                         <p>วันที่: <input type="date" class="signature-date-input" style="width: 100px;" onchange="formatSignatureDate(this)"></p>
                     </div>
                     <div class="signature-line"></div>
