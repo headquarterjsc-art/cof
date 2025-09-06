@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ใบรับรองแทนใบเสร็จรับเงิน</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Sarabun', 'TH Sarabun New', Arial, sans-serif;
+            font-size: 14px; line-height: 1.4; background-color: #f5f5f5; padding: 20px;
+        }
+        .container { max-width: 210mm; margin: 0 auto; background: white; padding: 12mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-height: auto; }
+        .header { text-align: center; margin-bottom: 8px; border-bottom: 2px solid #333; padding-bottom: 6px; }
+        .logo-section { display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+        .logo { width: 45px; height: 45px; margin-right: 12px; object-fit: contain; }
+        .company-info h1 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+        .company-info p { font-size: 11px; color: #666; }
+        .form-title { font-size: 18px; font-weight: 600; margin: 8px 0; }
+        .project-section { margin-bottom: 10px; padding: 6px; background: #f9f9f9; border-radius: 5px; }
+        .project-row { display: flex; align-items: center; margin-bottom: 8px; }
+        .project-row label { min-width: 80px; font-weight: 500; }
+        .project-row input { flex: 1; padding: 5px 8px; border: 1px solid #ddd; border-radius: 3px; font-family: inherit; }
+        .table-container { margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th, td { border: 1px solid #333; padding: 6px; text-align: left; vertical-align: top; }
+        th { background-color: #f0f0f0; font-weight: 600; text-align: center; }
+        .col-date { width: 15%; } .col-description { width: 45%; } .col-amount { width: 20%; } .col-note { width: 20%; }
+        .amount-input { width: 100%; border: none; background: transparent; text-align: right; font-family: inherit; }
+        .description-input, .note-input, .date-input { width: 100%; border: none; background: transparent; font-family: inherit; }
+        .date-input { cursor: pointer; color-scheme: light; }
+        .date-input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.7; }
+        .date-input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+        .date-input::-webkit-input-placeholder, .date-input::-moz-placeholder, .date-input:-ms-input-placeholder, .date-input::placeholder { color: transparent; }
+        .date-input::-webkit-datetime-edit-text,
+        .date-input::-webkit-datetime-edit-month-field,
+        .date-input::-webkit-datetime-edit-day-field,
+        .date-input::-webkit-datetime-edit-year-field { color: transparent; }
+
+/* --- Added to make signature date behave like table date --- */
+.signature-date-input::-webkit-input-placeholder,
+.signature-date-input::-moz-placeholder,
+.signature-date-input:-ms-input-placeholder,
+.signature-date-input::placeholder { color: transparent; }
+
+.signature-date-input::-webkit-datetime-edit-text,
+.signature-date-input::-webkit-datetime-edit-month-field,
+.signature-date-input::-webkit-datetime-edit-day-field,
+.signature-date-input::-webkit-datetime-edit-year-field { color: transparent; }
+
+/* Hide picker indicator for signature date in print, same as table date */
+@media print {
+    .signature-date-input::-webkit-calendar-picker-indicator { display: none; }
+    .signature-date-input { cursor: default; pointer-events: none; }
+    .signature-date-input::-webkit-input-placeholder, 
+    .signature-date-input::-moz-placeholder, 
+    .signature-date-input:-ms-input-placeholder, 
+    .signature-date-input::placeholder { color: transparent; }
+}
+        .total-row { background-color: #f9f9f9; font-weight: 600; }
+        .total-amount { text-align: right; font-weight: 600; color: #d32f2f; }
+        .controls { margin: 10px 0; text-align: center; }
+        .btn { padding: 8px 16px; margin: 0 5px; border: none; border-radius: 5px; cursor: pointer; font-family: inherit; font-size: 14px; transition: box-shadow .15s ease, transform .08s ease; }
+        .btn-add { background-color: #4caf50; color: white; }
+        .btn-remove { background-color: #f44336; color: white; }
+        .btn-print { background-color: #2196f3; color: white; }
+        .btn:hover { opacity: 0.9; }
+        .btn.drop-active { box-shadow: 0 0 0 3px rgba(33,150,243,0.35) inset, 0 0 0 2px rgba(33,150,243,0.6); transform: scale(0.99); }
+        
+        .image-upload-section { margin: 12px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #fafafa; }
+        .image-upload-section h3 { margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #333; }
+        .image-upload-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .image-upload-box { text-align: center; width: 48%; }
+        .image-upload-box.single-image { width: 50%; margin: 0 auto; }
+        .image-preview {
+            width: 100%; aspect-ratio: 4/3; border: 2px dashed transparent; border-radius: 8px; cursor: pointer;
+            display: none; align-items: center; justify-content: center; background: transparent; transition: all 0.3s ease;
+            overflow: hidden; position: relative;
+        }
+        .image-preview:hover { border-color: #2196f3; background: #f8f9ff; }
+        .image-preview.has-image { display: flex; border-style: solid; border-color: #ddd; background: white; }
+        .image-preview.has-image:hover { border-color: #2196f3; background: white; }
+        .upload-placeholder { text-align: center; color: #666; }
+        .upload-icon { font-size: 48px; margin-bottom: 10px; opacity: 0.7; }
+        .upload-placeholder p { margin: 5px 0; font-size: 14px; }
+        .upload-hint { font-size: 12px !important; color: #999 !important; }
+        .uploaded-image { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; transition: transform 0.3s ease; cursor: move; }
+        .image-editor {
+            position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8); border-radius: 20px; padding: 5px 10px; display: none; align-items: center; gap: 8px; z-index: 15;
+        }
+        .image-preview.has-image:hover .image-editor { display: flex; }
+        .editor-btn { background: none; border: none; color: white; font-size: 12px; cursor: pointer; padding: 4px 6px; border-radius: 3px; transition: background 0.2s ease; }
+        .editor-btn:hover { background: rgba(255,255,255,0.2); }
+        .zoom-display { color: white; font-size: 10px; min-width: 38px; text-align: center; }
+        .uploaded-image.dragging { cursor: grabbing !important; }
+        .remove-overlay {
+            position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; background: rgba(244, 67, 54, 0.9);
+            border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; color: white; font-size: 14px; font-weight: bold; z-index: 10;
+            transition: all 0.2s ease;
+        }
+        .remove-overlay:hover { background: rgba(244, 67, 54, 1); transform: scale(1.1); }
+        .image-preview.has-image:hover .remove-overlay { display: flex; }
+        
+        .certification-section { margin-top: 12px; padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
+        .certification-text { text-align: center; margin-bottom: 12px; line-height: 1.4; }
+        .signature-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px; }
+        .signature-box { text-align: center; }
+        .signature-info { margin-bottom: 10px; }
+        .signature-info input { border: none; border-bottom: 1px solid #333; padding: 2px 5px; margin: 0 5px; font-family: inherit; }
+        .signature-date-input { cursor: pointer; }
+        .signature-line { border-bottom: 1px solid #333; height: 40px; margin: 8px 0; position: relative; }
+        .signature-label { margin-top: 10px; font-weight: 500; }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; padding: 0; font-size: 12px; }
+            .container { box-shadow: none; padding: 12mm; margin: 0; max-width: none; }
+            .controls, .btn, .image-controls, .remove-overlay, .image-editor { display: none !important; }
+            .date-input::-webkit-calendar-picker-indicator { display: none; }
+            .date-input { cursor: default; pointer-events: none; }
+            .date-input::-webkit-input-placeholder, .date-input::-moz-placeholder, .date-input:-ms-input-placeholder, .date-input::placeholder { color: transparent; }
+            table, .signature-section, .image-upload-section { page-break-inside: avoid; }
+            .image-preview { cursor: default; pointer-events: none; }
+        }
+        @page { size: A4; margin: 10mm 12mm; }
+        .container { page-break-inside: avoid; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-section">
+                <img src="https://i.postimg.cc/MH3CzZYr/JSC.png" alt="JSC Logo" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="logo" style="display: none;">LOGO</div>
+                <div class="company-info">
+                    <h1>บริษัท จิรัฏสิริ คอนสตรัคชั่น จำกัด (สำนักงานใหญ่)</h1>
+                    <p>89/835 ซอยนวมินทร์ 81 แยก 3-39 แขวงนวมินทร์ เขตบึงกุ่ม กรุงเทพฯ 10240</p>
+                </div>
+            </div>
+            <div class="form-title">ใบรับรองแทนใบเสร็จรับเงิน</div>
+        </div>
+        
+        <div class="project-section">
+            <div class="project-row">
+                <label>โครงการ:</label>
+                <input type="text" id="project">
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="expenseTable">
+                <thead>
+                    <tr>
+                        <th class="col-date">วัน/เดือน/ปี</th>
+                        <th class="col-description">รายละเอียดรายจ่าย</th>
+                        <th class="col-amount">จำนวนเงิน</th>
+                        <th class="col-note">หมายเหตุ</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseBody">
+                    <tr>
+                        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
+                        <td><input type="text" class="description-input"></td>
+                        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+                        <td><input type="text" class="note-input"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
+                        <td><input type="text" class="description-input"></td>
+                        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+                        <td><input type="text" class="note-input"></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="2" style="text-align: center; font-weight: 600;">รวมทั้งสิ้น</td>
+                        <td class="total-amount" id="totalAmount">0.00</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 10px; font-style: italic; background-color: #f9f9f9;">
+                            <span style="font-weight: 500;">จำนวนเงิน (ตัวอักษร): </span>
+                            <span id="amountInWords">ศูนย์บาทถ้วน</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="image-upload-section">
+            <h3>แนบรูปภาพประกอบ</h3>
+            <div style="text-align: center; margin-bottom: 15px;">
+                <button class="btn btn-add" onclick="document.getElementById('imageUpload1').click();" id="uploadBtn1" title="คลิกเพื่อเลือกไฟล์ หรือ ลากรูปมาวางบนปุ่มนี้ได้">อัพโหลดรูปภาพที่ 1</button>
+                <button class="btn btn-add" onclick="document.getElementById('imageUpload2').click();" id="uploadBtn2" style="margin-left: 10px;" title="คลิกเพื่อเลือกไฟล์ หรือ ลากรูปมาวางบนปุ่มนี้ได้">อัพโหลดรูปภาพที่ 2</button>
+            </div>
+            <div class="image-upload-container" id="imageContainer">
+                <div class="image-upload-box" id="imageBox1">
+                    <input type="file" id="imageUpload1" accept="image/*" onchange="handleImageUpload(this, 'imagePreview1')" style="display: none;">
+                    <div class="image-preview" id="imagePreview1">
+                        <div class="upload-placeholder">
+                            <div class="upload-icon">📷</div>
+                            <p>คลิกเพื่ออัพโหลดรูปภาพ หรือ ลากรูปมาวางบนปุ่มด้านบน</p>
+                            <p class="upload-hint">รองรับ JPG, PNG</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="image-upload-box" id="imageBox2">
+                    <input type="file" id="imageUpload2" accept="image/*" onchange="handleImageUpload(this, 'imagePreview2')" style="display: none;">
+                    <div class="image-preview" id="imagePreview2">
+                        <div class="upload-placeholder">
+                            <div class="upload-icon">📷</div>
+                            <p>คลิกเพื่ออัพโหลดรูปภาพ หรือ ลากรูปมาวางบนปุ่มด้านบน</p>
+                            <p class="upload-hint">รองรับ JPG, PNG</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-add" onclick="addRow()">เพิ่มรายการ</button>
+            <button class="btn btn-remove" onclick="removeRow()">ลบรายการ</button>
+            <button class="btn btn-print" onclick="printForm()">พิมพ์/บันทึก PDF</button>
+        </div>
+        
+        <div class="certification-section">
+            <div class="certification-text">
+                <p><strong>ข้าพเจ้าขอรับรองว่า</strong> รายการค่าใช้จ่ายดังกล่าวข้างต้นเป็นความจริง และเป็นค่าใช้จ่ายที่จำเป็น</p>
+                <p>เพื่อการดำเนินงานตามโครงการ และได้จ่ายเงินไปแล้วจริง แต่ไม่สามารถขอใบเสร็จรับเงินได้</p>
+            </div>
+            
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-info">
+                        <p>ชื่อผู้เบิก: <select id="requesterSelect" style="width: 200px; border: none; border-bottom: 1px solid #333; padding: 2px 5px; margin: 0 5px; font-family: inherit; appearance: none; background: transparent; cursor: pointer;" onchange="updateRequesterPosition()" onfocus="this.size=3;" onblur="this.size=1;" onmouseover="this.size=3;" onmouseout="if(document.activeElement !== this) this.size=1;">
+                            <option value="">เลือกชื่อผู้เบิก</option>
+                            <option value="นาย อธิวัฒน์ โตพุก">นาย อธิวัฒน์ โตพุก</option>
+                            <option value="น.ส. ณัฎฐพัชร ไตรยุทธรงค์">น.ส. ณัฎฐพัชร ไตรยุทธรงค์</option>
+                        </select></p>
+                        <p>ตำแหน่ง: <input type="text" id="requesterPosition" style="width: 150px;" readonly></p>
+                        <p>วันที่: <input type="date" class="signature-date-input" style="width: 100px;" onchange="formatSignatureDate(this)"></p>
+                    </div>
+                    <div class="signature-line"></div>
+                    <div class="signature-label">ลายมือชื่อผู้เบิกจ่าย</div>
+                </div>
+                
+                <div class="signature-box">
+                    <div class="signature-info">
+                        <p>ชื่อผู้อนุมัติ: <input type="text" style="width: 170px;" value="นาย ธณนนท์ ไชยจักร" readonly></p>
+                        <p>ตำแหน่ง: <input type="text" style="width: 120px;" value="กรรมการผู้จัดการ" readonly></p>
+                        <p>วันที่: <input type="date" class="signature-date-input" style="width: 100px;" onchange="formatSignatureDate(this)"></p>
+                    </div>
+                    <div class="signature-line"></div>
+                    <div class="signature-label">ลายมือชื่อผู้อนุมัติ</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addRow() {
+            const tbody = document.getElementById('expenseBody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
+                <td><input type="text" class="description-input"></td>
+                <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+                <td><input type="text" class="note-input"></td>
+            `;
+            tbody.appendChild(newRow);
+        }
+        
+        function removeRow() {
+            const tbody = document.getElementById('expenseBody');
+            if (tbody.children.length > 1) {
+                tbody.removeChild(tbody.lastElementChild);
+                calculateTotal();
+            }
+        }
+        
+        function formatAmount(input) {
+            let value = input.value.replace(/[^\d.]/g, '');
+            const parts = value.split('.');
+            if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('');
+            if (parts[1] && parts[1].length > 2) value = parts[0] + '.' + parts[1].substring(0, 2);
+            if (value) {
+                const [integer, decimal] = value.split('.');
+                const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                value = decimal !== undefined ? formattedInteger + '.' + decimal : formattedInteger;
+            }
+            input.value = value;
+        }
+        
+        function calculateTotal() {
+            const amountInputs = document.querySelectorAll('.amount-input');
+            let total = 0;
+            amountInputs.forEach(input => { total += parseFloat(input.value.replace(/,/g, '')) || 0; });
+            document.getElementById('totalAmount').textContent = total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('amountInWords').textContent = numberToThaiText(total);
+        }
+        
+        function numberToThaiText(number) {
+            if (number === 0) return 'ศูนย์บาทถ้วน';
+            const ones = ['', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
+            const positions = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน', 'ล้าน'];
+            function convertGroup(num) {
+                if (num === 0) return '';
+                let result = ''; const digits = num.toString().split('').reverse();
+                for (let i = 0; i < digits.length; i++) {
+                    const digit = parseInt(digits[i]); if (digit === 0) continue;
+                    if (i === 0) result = (digits.length > 1 && digit === 1 ? 'เอ็ด' : ones[digit]) + result;
+                    else if (i === 1) result = (digit === 1 ? 'สิบ' : digit === 2 ? 'ยี่สิบ' : ones[digit] + 'สิบ') + result;
+                    else result = ones[digit] + positions[i] + result;
+                }
+                return result;
+            }
+            const [baht, satang] = number.toFixed(2).split('.');
+            let result = '';
+            const bahtNum = parseInt(baht);
+            if (bahtNum > 0) {
+                if (bahtNum >= 1000000) {
+                    const million = Math.floor(bahtNum / 1000000);
+                    const remainder = bahtNum % 1000000;
+                    result += convertGroup(million) + 'ล้าน';
+                    if (remainder > 0) result += convertGroup(remainder);
+                } else result += convertGroup(bahtNum);
+                result += 'บาท';
+            }
+            const satangNum = parseInt(satang);
+            if (satangNum > 0) result += convertGroup(satangNum) + 'สตางค์';
+            else if (bahtNum > 0) result += 'ถ้วน';
+            return result || 'ศูนย์บาทถ้วน';
+        }
+        
+        function formatThaiDate(input) {
+            if (!input.value) return;
+            const date = new Date(input.value);
+            const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.','ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const day = date.getDate(); const month = thaiMonths[date.getMonth()]; const year = (date.getFullYear() + 543);
+            let hiddenInput = input.parentNode.querySelector('.hidden-date');
+            if (!hiddenInput) { hiddenInput = document.createElement('input'); hiddenInput.type = 'hidden'; hiddenInput.className = 'hidden-date'; input.parentNode.appendChild(hiddenInput); }
+            hiddenInput.value = input.value;
+            const textInput = document.createElement('input');
+            textInput.type = 'text'; textInput.className = 'date-input thai-date'; textInput.value = `${day} ${month} ${year}`; textInput.readOnly = true;
+            textInput.onclick = function() {
+                const dateInput = document.createElement('input'); dateInput.type = 'date'; dateInput.className = 'date-input'; dateInput.value = hiddenInput.value;
+                dateInput.onchange = function() { formatThaiDate(this); };
+                this.parentNode.replaceChild(dateInput, this); dateInput.focus(); if (dateInput.showPicker) dateInput.showPicker();
+            };
+            input.parentNode.replaceChild(textInput, input);
+        }
+        
+        function formatSignatureDate(input) {
+            if (!input.value) return;
+            const date = new Date(input.value);
+            const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.','ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const day = date.getDate(); const month = thaiMonths[date.getMonth()]; const year = (date.getFullYear() + 543);
+            let hiddenInput = input.parentNode.querySelector('.hidden-signature-date');
+            if (!hiddenInput) { hiddenInput = document.createElement('input'); hiddenInput.type = 'hidden'; hiddenInput.className = 'hidden-signature-date'; input.parentNode.appendChild(hiddenInput); }
+            hiddenInput.value = input.value;
+            const textInput = document.createElement('input');
+            textInput.type = 'text'; textInput.className = 'signature-date-input thai-signature-date';
+            textInput.style.cssText = 'width:100px;border:none;border-bottom:1px solid #333;padding:2px 5px;margin:0 5px;font-family:inherit;';
+            textInput.value = `${day} ${month} ${year}`; textInput.readOnly = true;
+            textInput.onclick = function() {
+                const dateInput = document.createElement('input');
+                dateInput.type = 'date'; dateInput.className = 'signature-date-input';
+                dateInput.style.cssText = 'width:100px;border:none;border-bottom:1px solid #333;padding:2px 5px;margin:0 5px;font-family:inherit;';
+                dateInput.value = hiddenInput.value; dateInput.onchange = function() { formatSignatureDate(this); };
+                this.parentNode.replaceChild(dateInput, this); dateInput.focus(); if (dateInput.showPicker) dateInput.showPicker();
+            };
+            input.parentNode.replaceChild(textInput, input);
+        }
+        
+        function handleImageUpload(input, previewId) {
+            const file = input.files[0];
+            const preview = document.getElementById(previewId);
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const inputId = previewId.replace('Preview', 'Upload');
+                    const btnId = previewId.replace('Preview', 'Btn').replace('image', 'uploadBtn');
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Uploaded image" class="uploaded-image" id="${previewId}Img">
+                        <div class="remove-overlay" onclick="removeImage('${previewId}', '${inputId}', '${btnId}')">×</div>
+                        <div class="image-editor">
+                            <span class="zoom-display" id="${previewId}Zoom">100%</span>
+                            <button class="editor-btn" onclick="zoomImage('${previewId}', -0.1)" title="ซูมออก">−</button>
+                            <button class="editor-btn" onclick="zoomImage('${previewId}', 0.1)" title="ซูมเข้า">+</button>
+                            <button class="editor-btn" onclick="resetScale('${previewId}')" title="รีเซ็ตสเกล">100%</button>
+                            <button class="editor-btn" onclick="rotateImage('${previewId}', -90)" title="หมุนซ้าย 90°">⟲</button>
+                            <button class="editor-btn" onclick="rotateImage('${previewId}', 90)" title="หมุนขวา 90°">⟳</button>
+                            <button class="editor-btn" onclick="resetImage('${previewId}')" title="รีเซ็ตทั้งหมด">รีเซ็ต</button>
+                        </div>
+                    `;
+                    preview.classList.add('has-image');
+                    initImageTransform(previewId);
+                    addImageInteractions(previewId);
+                    document.getElementById(btnId).style.display = 'none';
+                    updateImageLayout();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function removeImage(previewId, inputId, btnId) {
+            const preview = document.getElementById(previewId);
+            const input = document.getElementById(inputId);
+            preview.innerHTML = `
+                <div class="upload-placeholder">
+                    <div class="upload-icon">📷</div>
+                    <p>คลิกเพื่ออัพโหลดรูปภาพ หรือ ลากรูปมาวางบนปุ่มด้านบน</p>
+                    <p class="upload-hint">รองรับ JPG, PNG</p>
+                </div>
+            `;
+            preview.classList.remove('has-image');
+            input.value = '';
+            document.getElementById(btnId).style.display = 'inline-block';
+            updateImageLayout();
+        }
+        
+        function updateImageLayout() {
+            const preview1 = document.getElementById('imagePreview1');
+            const preview2 = document.getElementById('imagePreview2');
+            const box1 = document.getElementById('imageBox1');
+            const box2 = document.getElementById('imageBox2');
+            const hasImage1 = preview1.classList.contains('has-image');
+            const hasImage2 = preview2.classList.contains('has-image');
+            box1.classList.remove('single-image'); box2.classList.remove('single-image');
+            if (hasImage1 && !hasImage2) { box1.classList.add('single-image'); box2.style.display = 'none'; }
+            else if (!hasImage1 && hasImage2) { box2.classList.add('single-image'); box1.style.display = 'none'; }
+            else { box1.style.display = 'block'; box2.style.display = 'block'; }
+        }
+        
+        // ============ Image Transform State ============
+        const imageTransforms = {};
+        function initImageTransform(previewId) {
+            imageTransforms[previewId] = { scale: 1, translateX: 0, translateY: 0, rotation: 0 };
+            updateImageTransform(previewId); updateZoomDisplay(previewId);
+        }
+        
+        function zoomImage(previewId, delta) {
+            const t = imageTransforms[previewId]; if (!t) return;
+            t.scale = Math.max(0.5, Math.min(3, (t.scale + delta)));
+            updateImageTransform(previewId); updateZoomDisplay(previewId);
+        }
+        function resetScale(previewId) {
+            const t = imageTransforms[previewId]; if (!t) return;
+            t.scale = 1; updateImageTransform(previewId); updateZoomDisplay(previewId);
+        }
+        function rotateImage(previewId, deg) {
+            const t = imageTransforms[previewId]; if (!t) return;
+            t.rotation = (t.rotation + deg) % 360;
+            updateImageTransform(previewId);
+        }
+        function resetImage(previewId) {
+            const t = imageTransforms[previewId]; if (!t) return;
+            t.scale = 1; t.translateX = 0; t.translateY = 0; t.rotation = 0;
+            updateImageTransform(previewId); updateZoomDisplay(previewId);
+        }
+        function updateImageTransform(previewId) {
+            const img = document.getElementById(previewId + 'Img');
+            const t = imageTransforms[previewId]; if (!img || !t) return;
+            img.style.transform = `translate(${t.translateX}px, ${t.translateY}px) scale(${t.scale}) rotate(${t.rotation}deg)`;
+            img.style.transformOrigin = 'center center';
+        }
+        function updateZoomDisplay(previewId) {
+            const display = document.getElementById(previewId + 'Zoom');
+            const t = imageTransforms[previewId];
+            if (display && t) display.textContent = Math.round(t.scale * 100) + '%';
+        }
+        
+        // Drag/Pan handlers (mouse + touch)
+        function addImageInteractions(previewId) {
+            const img = document.getElementById(previewId + 'Img');
+            const preview = document.getElementById(previewId); if (!img || !preview) return;
+            let isDragging = false, startX = 0, startY = 0, startTX = 0, startTY = 0;
+            preview.addEventListener('wheel', function(e) {
+                e.preventDefault(); const delta = e.deltaY > 0 ? -0.1 : 0.1; zoomImage(previewId, delta);
+            });
+            img.addEventListener('mousedown', function(e) {
+                e.preventDefault(); isDragging = true; img.classList.add('dragging');
+                startX = e.clientX; startY = e.clientY; startTX = imageTransforms[previewId].translateX; startTY = imageTransforms[previewId].translateY;
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startX, dy = e.clientY - startY;
+                const t = imageTransforms[previewId];
+                t.translateX = Math.max(-150, Math.min(150, startTX + dx));
+                t.translateY = Math.max(-150, Math.min(150, startTY + dy));
+                updateImageTransform(previewId);
+            });
+            document.addEventListener('mouseup', function() { if (isDragging) { isDragging = false; img.classList.remove('dragging'); } });
+            // Touch
+            preview.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 1) {
+                    isDragging = true; const touch = e.touches[0];
+                    startX = touch.clientX; startY = touch.clientY; startTX = imageTransforms[previewId].translateX; startTY = imageTransforms[previewId].translateY;
+                }
+            }, { passive: false });
+            preview.addEventListener('touchmove', function(e) {
+                if (!isDragging || e.touches.length !== 1) return; e.preventDefault();
+                const touch = e.touches[0]; const dx = touch.clientX - startX; const dy = touch.clientY - startY;
+                const t = imageTransforms[previewId];
+                t.translateX = Math.max(-150, Math.min(150, startTX + dx));
+                t.translateY = Math.max(-150, Math.min(150, startTY + dy));
+                updateImageTransform(previewId);
+            }, { passive: false });
+            preview.addEventListener('touchend', function() { isDragging = false; }, { passive: false });
+        }
+        
+        function updateRequesterPosition() {
+            const select = document.getElementById('requesterSelect');
+            const positionInput = document.getElementById('requesterPosition');
+            const positions = {
+                'นาย อธิวัฒน์ โตพุก': 'ผู้ช่วยกรรมการ',
+                'น.ส. ณัฎฐพัชร ไตรยุทธรงค์': 'ธุรการสำนักงานกลาง'
+            };
+            positionInput.value = positions[select.value] || '';
+        }
+        function printForm() { window.print(); }
+        
+        // ========== NEW: Drag & Drop on Upload Buttons ==========
+        function wireDropOnButton(btnId, inputId, previewId) {
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            if (!btn || !input) return;
+            
+            const onDragEnter = (e) => { e.preventDefault(); e.stopPropagation(); btn.classList.add('drop-active'); };
+            const onDragOver  = (e) => { e.preventDefault(); e.stopPropagation(); };
+            const onDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); btn.classList.remove('drop-active'); };
+            const onDrop = (e) => {
+                e.preventDefault(); e.stopPropagation(); btn.classList.remove('drop-active');
+                const files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
+                if (!files || !files.length) return;
+                const dt = new DataTransfer();
+                dt.items.add(files[0]); // only first image
+                input.files = dt.files;
+                handleImageUpload(input, previewId);
+            };
+            
+            ['dragenter', 'dragover'].forEach(ev => btn.addEventListener(ev, onDragEnter));
+            ['dragleave', 'dragend', 'drop'].forEach(ev => btn.addEventListener(ev, onDragLeave));
+            btn.addEventListener('dragover', onDragOver);
+            btn.addEventListener('drop', onDrop);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() { 
+            calculateTotal();
+            wireDropOnButton('uploadBtn1', 'imageUpload1', 'imagePreview1');
+            wireDropOnButton('uploadBtn2', 'imageUpload2', 'imagePreview2');
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const amountInputs = document.querySelectorAll('.amount-input');
+            amountInputs.forEach(input => { if (input.placeholder) { formatAmount(input); } });
+        });
+    </script>
+</body>
+</html>
