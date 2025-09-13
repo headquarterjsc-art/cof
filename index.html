@@ -132,6 +132,25 @@
     .image-upload-section:not(:has(.has-image)) { display: none !important; }
 }
 
+
+/* === Enhancements === */
+.logo-section { flex-direction: column; gap: 12px; } /* increased gap for better spacing */ /* stack logo above text for better balance */
+.logo { width: 60px; height: 60px; margin-right: 0; } /* slightly larger logo, centered */
+.company-info { text-align: center; }
+
+/* Validation styles for amount input */
+.amount-input.invalid { outline: 2px solid #f44336; background: #fff5f5; }
+.amount-input.valid { outline: none; background: transparent; }
+
+/* Textarea auto-size base style */
+.description-input { resize: none; overflow: hidden; line-height: 1.4; }
+
+
+/* Center text for date input fields */
+.date-input, .thai-date, .signature-date-input, .thai-signature-date {
+    text-align: center !important;
+}
+
 </style>
 </head>
 <body>
@@ -166,38 +185,22 @@
                     </tr>
                 </thead>
                 <tbody id="expenseBody">
-    <tr>
+<tr>
         <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
-        <td><input type="text" class="description-input"></td>
-        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+        <td><textarea class="description-input autosize" rows="1" oninput="autoResize(this)"></textarea></td>
+        <td><input type="text" class="amount-input" oninput="validateAmount(this); formatAmount(this); calculateTotal()" onblur="enforceTwoDecimals(this)"></td>
         <td><input type="text" class="note-input"></td>
     </tr>
-
-    <tr>
+<tr>
         <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
-        <td><input type="text" class="description-input"></td>
-        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+        <td><textarea class="description-input autosize" rows="1" oninput="autoResize(this)"></textarea></td>
+        <td><input type="text" class="amount-input" oninput="validateAmount(this); formatAmount(this); calculateTotal()" onblur="enforceTwoDecimals(this)"></td>
         <td><input type="text" class="note-input"></td>
     </tr>
-
-    <tr>
+<tr>
         <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
-        <td><input type="text" class="description-input"></td>
-        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
-        <td><input type="text" class="note-input"></td>
-    </tr>
-
-    <tr>
-        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
-        <td><input type="text" class="description-input"></td>
-        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
-        <td><input type="text" class="note-input"></td>
-    </tr>
-
-    <tr>
-        <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
-        <td><input type="text" class="description-input"></td>
-        <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+        <td><textarea class="description-input autosize" rows="1" oninput="autoResize(this)"></textarea></td>
+        <td><input type="text" class="amount-input" oninput="validateAmount(this); formatAmount(this); calculateTotal()" onblur="enforceTwoDecimals(this)"></td>
         <td><input type="text" class="note-input"></td>
     </tr>
 </tbody>
@@ -289,13 +292,45 @@
     </div>
 
     <script>
+
+        // Validate amount to accept only numbers and decimal; highlight if invalid
+        function validateAmount(input) {
+            const raw = (input.value || '').trim();
+            // allow commas for readability; validate the numeric part
+            const numeric = raw.replace(/,/g, '');
+            const isValid = /^\d*(?:\.\d{0,2})?$/.test(numeric);
+            input.classList.toggle('invalid', !isValid && numeric.length > 0);
+            input.classList.toggle('valid', isValid || numeric.length === 0);
+            return isValid;
+        }
+        // Enforce 2 decimal places on blur
+        function enforceTwoDecimals(input) {
+            const raw = (input.value || '').replace(/,/g, '');
+            if (raw === '') { input.classList.remove('invalid'); input.classList.remove('valid'); return; }
+            if (!/^\d*(?:\.\d{0,})?$/.test(raw)) { input.classList.add('invalid'); return; }
+            const num = parseFloat(raw);
+            if (isNaN(num)) { input.classList.add('invalid'); return; }
+            const fixed = num.toFixed(2);
+            // Reuse formatter to add thousand separators
+            const parts = fixed.split('.');
+            const formattedInteger = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            input.value = formattedInteger + '.' + parts[1];
+            input.classList.remove('invalid'); input.classList.add('valid');
+            calculateTotal();
+        }
+        // Auto-resize textarea rows
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
+        }
+
         function addRow() {
             const tbody = document.getElementById('expenseBody');
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td><input type="date" class="date-input" onchange="formatThaiDate(this)"></td>
-                <td><input type="text" class="description-input"></td>
-                <td><input type="text" class="amount-input" oninput="formatAmount(this); calculateTotal()"></td>
+                <td><textarea class="description-input autosize" rows="1" oninput="autoResize(this)"></textarea></td>
+                <td><input type="text" class="amount-input" oninput="validateAmount(this); formatAmount(this); calculateTotal()" onblur="enforceTwoDecimals(this)"></td>
                 <td><input type="text" class="note-input"></td>
             `;
             tbody.appendChild(newRow);
@@ -578,6 +613,12 @@
         
         document.addEventListener('DOMContentLoaded', function() { 
             calculateTotal();
+            // initialize autosize and validation for existing elements
+            document.querySelectorAll('.description-input.autosize').forEach(autoResize);
+            document.querySelectorAll('.amount-input').forEach(function(amt){
+                validateAmount(amt);
+                amt.addEventListener('blur', function(){ enforceTwoDecimals(amt); });
+            });
             wireDropOnButton('uploadBtn1', 'imageUpload1', 'imagePreview1');
             wireDropOnButton('uploadBtn2', 'imageUpload2', 'imagePreview2');
         });
