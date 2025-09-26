@@ -151,6 +151,28 @@
     text-align: center !important;
 }
 
+
+/* === Fix: Project input shouldn't render white box on print === */
+.print-only { display: none; }
+
+@media print {
+  #project {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    color: inherit !important;
+  }
+  #project::placeholder { color: transparent !important; }
+  /* Swap input → span on print for bulletproof rendering */
+  #project { display: none !important; }
+  #projectPrint.print-only { 
+    display: inline !important; 
+    white-space: pre-wrap; 
+  }
+}
+
 </style>
 </head>
 <body>
@@ -171,6 +193,8 @@
             <div class="project-row">
                 <label>โครงการ:</label>
                 <input type="text" id="project" value="สำนักงานกลาง">
+                <span id="projectPrint" class="print-only"></span>
+
             </div>
         </div>
         
@@ -258,37 +282,41 @@
         </div>
         
         <div class="certification-section">
-            <div class="certification-text">
-                <p><strong>ข้าพเจ้าขอรับรองว่า</strong> รายการค่าใช้จ่ายดังกล่าวข้างต้นเป็นความจริง และเป็นค่าใช้จ่ายที่จำเป็น</p>
-                <p>เพื่อการดำเนินงานตามโครงการ และได้จ่ายเงินไปแล้วจริง แต่ไม่สามารถขอใบเสร็จรับเงินได้</p>
+    <div class="certification-text" id="certificationText">
+        <p>
+            ข้าพเจ้า <span id="certName">(ชื่อที่เซ็นด้านล่าง)</span> (ผู้เบิกจ่าย) ขอรับรองว่า รายการข้างต้นนี้ไม่อาจเรียกเก็บใบเสร็จรับเงินจากผู้รับได้<br>
+			และข้าพเจ้าได้จ่ายไปในงานของทางบริษัท โดยแท้ตั้งแต่วันที่ <span id="certStartDate">…</span>
+            ถึงวันที่ <span id="certEndDate">…</span>
+        </p>
+        
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-info">
+                <p>ชื่อผู้เบิก: <select id="requesterSelect" style="width: 200px; border: none; border-bottom: 1px solid #333; padding: 2px 5px; margin: 0 5px; font-family: inherit; appearance: none; background: transparent; cursor: pointer;" onchange="updateRequesterPosition(); updateCertificationText()" >
+                    <option value="">เลือกชื่อผู้เบิก</option>
+                    <option value="นาย อธิวัฒน์ โตพุก" selected>นาย อธิวัฒน์ โตพุก</option>
+                    <option value="น.ส. ณัฎฐพัชร ไตรยุทธรงค์">น.ส. ณัฎฐพัชร ไตรยุทธรงค์</option>
+                </select></p>
+                <p>ตำแหน่ง: <input type="text" id="requesterPosition" style="width: 150px;" readonly value="ผู้ช่วยกรรมการ"></p>
+                <p>วันที่: <input type="date" class="signature-date-input" style="width: 100px;" onchange="formatSignatureDate(this)"></p>
             </div>
-            
-            <div class="signature-section">
-                <div class="signature-box">
-                    <div class="signature-info">
-                        <p>ชื่อผู้เบิก: <select id="requesterSelect" style="width: 200px; border: none; border-bottom: 1px solid #333; padding: 2px 5px; margin: 0 5px; font-family: inherit; appearance: none; background: transparent; cursor: pointer;" onchange="updateRequesterPosition()" onfocus="this.size=3;" onblur="this.size=1;" onmouseover="this.size=3;" onmouseout="if(document.activeElement !== this) this.size=1;">
-                            <option value="">เลือกชื่อผู้เบิก</option>
-                            <option value="นาย อธิวัฒน์ โตพุก" selected>นาย อธิวัฒน์ โตพุก</option>
-                            <option value="น.ส. ณัฎฐพัชร ไตรยุทธรงค์">น.ส. ณัฎฐพัชร ไตรยุทธรงค์</option>
-                        </select></p>
-                        <p>ตำแหน่ง: <input type="text" id="requesterPosition" style="width: 150px;" readonly value="ผู้ช่วยกรรมการ"></p>
-                        <p>วันที่: <input type="date" class="signature-date-input" style="width: 100px;" onchange="formatSignatureDate(this)"></p>
-                    </div>
-                    <div class="signature-line"></div>
-                    <div class="signature-label">ลายมือชื่อผู้เบิกจ่าย</div>
-                </div>
-                
-                <div class="signature-box">
-                    <div class="signature-info">
-                        <p>ชื่อผู้อนุมัติ: <input type="text" style="width: 170px;" value="นาย ธณนนท์ ไชยจักร" readonly></p>
-                        <p>ตำแหน่ง: <input type="text" style="width: 120px;" value="กรรมการผู้จัดการ" readonly></p>
-                        <p>วันที่: <input type="date" class="signature-date-input" style="width: 100px;" onchange="formatSignatureDate(this)"></p>
-                    </div>
-                    <div class="signature-line"></div>
-                    <div class="signature-label">ลายมือชื่อผู้อนุมัติ</div>
-                </div>
-            </div>
+            <div class="signature-line"></div>
+            <div class="signature-label">ลายมือชื่อผู้เบิกจ่าย</div>
         </div>
+
+        <div class="signature-box">
+            <div class="signature-info">
+                <p>ชื่อผู้อนุมัติ: <input type="text" style="width: 170px;" value="นาย ธณนนท์ ไชยจักร" readonly></p>
+                <p>ตำแหน่ง: <input type="text" style="width: 120px;" value="กรรมการผู้จัดการ" readonly></p>
+                <p>วันที่: <input type="date" class="signature-date-input" style="width: 100px;" onchange="formatSignatureDate(this)"></p>
+            </div>
+            <div class="signature-line"></div>
+            <div class="signature-label">ลายมือชื่อผู้อนุมัติ</div>
+        </div>
+    </div>
+</div>
     </div>
 
     <script>
@@ -317,6 +345,7 @@
             input.value = formattedInteger + '.' + parts[1];
             input.classList.remove('invalid'); input.classList.add('valid');
             calculateTotal();
+                updateCertificationText();
         }
         // Auto-resize textarea rows
         function autoResize(el) {
@@ -334,6 +363,7 @@
                 <td><input type="text" class="note-input"></td>
             `;
             tbody.appendChild(newRow);
+            updateCertificationText();
         }
         
         function removeRow() {
@@ -341,6 +371,7 @@
             if (tbody.children.length > 1) {
                 tbody.removeChild(tbody.lastElementChild);
                 calculateTotal();
+                updateCertificationText();
             }
         }
         
@@ -399,6 +430,7 @@
         }
         
         function formatThaiDate(input) {
+            updateCertificationText();
             if (!input.value) return;
             const date = new Date(input.value);
             const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.','ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -584,7 +616,24 @@
             };
             positionInput.value = positions[select.value] || '';
         }
-        function printForm() { window.print(); }
+        
+// === Sync project input to print-only span ===
+function syncProjectPrint(){
+  var inp = document.getElementById('project');
+  var span = document.getElementById('projectPrint');
+  if (!inp || !span) return;
+  var v = (inp.value || '').trim();
+  span.textContent = v || '—';
+}
+// Bind on input
+document.addEventListener('DOMContentLoaded', function(){
+  var inp = document.getElementById('project');
+  if (inp) inp.addEventListener('input', syncProjectPrint);
+  // Initialize once
+  syncProjectPrint();
+});
+
+function printForm() { syncProjectPrint(); window.print(); }
         
         // ========== NEW: Drag & Drop on Upload Buttons ==========
         function wireDropOnButton(btnId, inputId, previewId) {
@@ -613,6 +662,8 @@
         
         document.addEventListener('DOMContentLoaded', function() { 
             calculateTotal();
+            updateCertificationText();
+                updateCertificationText();
             // initialize autosize and validation for existing elements
             document.querySelectorAll('.description-input.autosize').forEach(autoResize);
             document.querySelectorAll('.amount-input').forEach(function(amt){
@@ -627,6 +678,162 @@
             const amountInputs = document.querySelectorAll('.amount-input');
             amountInputs.forEach(input => { if (input.placeholder) { formatAmount(input); } });
         });
-    </script>
+    
+// === Auto-fill certification text (name + date range) ===
+function formatDateThaiShort(isoDate) {
+    if (!isoDate) return '…';
+    const d = new Date(isoDate);
+    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.','ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    return `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
+}
+function getFirstLastDates() {
+    const rows = Array.from(document.querySelectorAll('#expenseBody tr'));
+    const dates = [];
+    rows.forEach(tr => {
+        // try hidden-date first (created when display is converted), if not exist, read from <input type=date>
+        let hidden = tr.querySelector('.hidden-date');
+        let val = hidden ? hidden.value : '';
+        if (!val) {
+            const dateInput = tr.querySelector('input[type="date"].date-input');
+            if (dateInput && dateInput.value) val = dateInput.value;
+        }
+        if (val) if (val) dates.push(val);
+    });
+    if (!dates.length) return {first: '', last: ''};
+    return { first: dates[0], last: dates[dates.length - 1] || dates[0] };
+}
+function updateCertificationText() {
+    const nameSel = document.getElementById('requesterSelect');
+    const name = (nameSel && nameSel.value) ? nameSel.value : '(ชื่อที่เซ็นด้านล่าง)';
+    const {first, last} = getFirstLastDates();
+    const startTxt = formatDateThaiShort(first);
+    const endTxt = formatDateThaiShort(last || first);
+    const nameSpan = document.getElementById('certName');
+    const startSpan = document.getElementById('certStartDate');
+    const endSpan = document.getElementById('certEndDate');
+    if (nameSpan) nameSpan.textContent = name || '(ชื่อที่เซ็นด้านล่าง)';
+    if (startSpan) startSpan.textContent = startTxt;
+    if (endSpan) endSpan.textContent = endTxt;
+}
+
+    
+document.addEventListener('DOMContentLoaded', function(){
+    const sel = document.getElementById('requesterSelect');
+    if (sel) {
+        sel.addEventListener('change', function(){
+            this.blur(); // collapse dropdown immediately on selection
+        });
+    }
+});
+
+
+document.addEventListener('DOMContentLoaded', function(){
+    const dateInputs = document.querySelectorAll('.signature-box:first-child .signature-date-input');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = yyyy + '-' + mm + '-' + dd;
+    dateInputs.forEach(input => {
+        if (!input.value) input.value = todayStr;
+    });
+});
+
+
+document.addEventListener('DOMContentLoaded', function(){
+    const sigInputs = document.querySelectorAll('.signature-date-input');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = yyyy + '-' + mm + '-' + dd;
+    sigInputs.forEach(input => {
+        if (!input.value) input.value = todayStr;
+        // Immediately convert to Thai short date display
+        try { formatSignatureDate(input); } catch (e) {}
+    });
+});
+
+
+// === Auto-set signature dates to the last expense date ===
+function getLastExpenseDateISO() {
+    const rows = Array.from(document.querySelectorAll('#expenseBody tr'));
+    // iterate from bottom to top, pick first non-empty
+    for (let i = rows.length - 1; i >= 0; i--) {
+        const tr = rows[i];
+        const hidden = tr.querySelector('.hidden-date');
+        let val = hidden ? hidden.value : '';
+        if (!val) {
+            const di = tr.querySelector('input[type="date"].date-input');
+            if (di && di.value) val = di.value;
+        }
+        if (val) return val;
+    }
+    return '';
+}
+
+function isoToday() {
+    const t = new Date();
+    const yyyy = t.getFullYear();
+    const mm = String(t.getMonth() + 1).padStart(2, '0');
+    const dd = String(t.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+function setSignatureDateInput(el, iso) {
+    if (!el) return;
+    // If display already converted to Thai text (type=text), we rebuild a date input and reconvert.
+    if (el.classList.contains('thai-signature-date') || el.type === 'text') {
+        const parent = el.parentNode;
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.className = 'signature-date-input';
+        dateInput.style.cssText = 'width:100px;border:none;border-bottom:1px solid #333;padding:2px 5px;margin:0 5px;font-family:inherit;';
+        dateInput.value = iso;
+        dateInput.onchange = function(){ formatSignatureDate(this); };
+        parent.replaceChild(dateInput, el);
+        // Convert to Thai display
+        formatSignatureDate(dateInput);
+    } else {
+        // native date input not yet converted
+        el.value = iso;
+        formatSignatureDate(el);
+    }
+}
+
+function setSignatureDatesFromLastDate() {
+    const lastISO = getLastExpenseDateISO() || isoToday();
+    const sigInputs = document.querySelectorAll('.signature-section .signature-date-input, .signature-section .thai-signature-date');
+    sigInputs.forEach(el => setSignatureDateInput(el, lastISO));
+}
+
+// Wire into existing flows
+(function(){
+    const origFormatThaiDate = window.formatThaiDate;
+    window.formatThaiDate = function(input){
+        if (origFormatThaiDate) origFormatThaiDate(input);
+        // After any row date changes, update signatures
+        try { setSignatureDatesFromLastDate(); } catch(e){}
+    };
+
+    const origAddRow = window.addRow;
+    window.addRow = function(){
+        if (origAddRow) origAddRow();
+        try { setSignatureDatesFromLastDate(); } catch(e){}
+    };
+
+    const origRemoveRow = window.removeRow;
+    window.removeRow = function(){
+        if (origRemoveRow) origRemoveRow();
+        try { setSignatureDatesFromLastDate(); } catch(e){}
+    };
+
+    // On load
+    document.addEventListener('DOMContentLoaded', function(){
+        try { setSignatureDatesFromLastDate(); } catch(e){}
+    });
+})();
+
+</script>
 </body>
 </html>
